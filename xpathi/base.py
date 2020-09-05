@@ -4,6 +4,12 @@ from enum import Enum
 from .utils import _format_parameter
 
 
+class XPathMode(Enum):
+    NONE = ''
+    SINGLE = '/'
+    DOUBLE = '//'
+
+
 class Element:
     def __init__(self, tag: str):
         self.tag = tag
@@ -12,18 +18,18 @@ class Element:
         self.attribute = None
 
     def __truediv__(self, element: 'Element') -> str:
-        return self.execute(Element.Mode.DOUBLE, root=True) + element.execute(Element.Mode.SINGLE)
+        return self.execute(XPathMode.DOUBLE, root=True) + element.execute(XPathMode.SINGLE)
 
     def __floordiv__(self, element: 'Element') -> str:
-        return self.execute(Element.Mode.DOUBLE, root=True) + element.execute(Element.Mode.DOUBLE)
+        return self.execute(XPathMode.DOUBLE, root=True) + element.execute(XPathMode.DOUBLE)
 
     def __rtruediv__(self, element: str) -> str:
-        return element + self.execute(Element.Mode.SINGLE)
+        return element + self.execute(XPathMode.SINGLE)
 
     def __rfloordiv__(self, element: str) -> str:
-        return element + self.execute(Element.Mode.DOUBLE)
+        return element + self.execute(XPathMode.DOUBLE)
 
-    def execute(self, mode: 'Element.Mode', root: bool = False) -> str:
+    def execute(self, mode: XPathMode = XPathMode.NONE, root: bool = False) -> str:
         start = '.' if root else ''
         return start + mode.value + self.__str__()
 
@@ -32,6 +38,7 @@ class Element:
             return self
         element = deepcopy(self)
         for arg in args:
+            arg = str(arg)
             element.parameters.append(arg)
         for key, value in kwargs.items():
             key = self._format_parameter_key(key)
@@ -43,9 +50,7 @@ class Element:
     def _format_parameter_key(key: str):
         if key.startswith('_'):
             return '@' + key.lstrip('_')
-        if key in ['text', 'name']:
-            return f'{key}()'
-        raise Exception('Invalid key')
+        return f'{key}()'
 
     def __getitem__(self, value: int):
         element = deepcopy(self)
@@ -86,8 +91,3 @@ class Element:
 
     def __repr__(self) -> str:
         return f'<tag={self.tag}, parameters={self.parameters}, order={self.order}, attribute={self.attribute}>'
-
-    class Mode(Enum):
-        NONE = ''
-        SINGLE = '/'
-        DOUBLE = '//'
