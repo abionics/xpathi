@@ -1,3 +1,4 @@
+from xpathi.base import Element
 from xpathi.elements import *
 
 
@@ -11,9 +12,29 @@ def test_double_slash():
     assert xpath == './/div//a'
 
 
-def test_parameters():
+def test_parameters_1():
     xpath = div // a(_class='c1', _maxlength=10)
     assert xpath == './/div//a[@class="c1" and @maxlength=10]'
+
+
+def test_parameters_2():
+    xpath = div // a(_class)
+    assert xpath == './/div//a[@class]'
+
+
+def test_parameters_3():
+    xpath = div // a('@class')
+    assert xpath == './/div//a[@class]'
+
+
+def test_parameters_text():
+    xpath = div / a(text='short', _class='c1')
+    assert xpath == './/div/a[text()="short" and @class="c1"]'
+
+
+def test_parameters_name():
+    xpath = div / a(name='short', _class='c1')
+    assert xpath == './/div/a[name()="short" and @class="c1"]'
 
 
 def test_attribute_1():
@@ -62,33 +83,23 @@ def test_order_3():
 
 
 def test_contains_1():
-    xpath = div / a(contains(_href, 'http'), _class='c1')
-    assert xpath == './/div/a[contains(@href, "http") and @class="c1"]'
+    xpath = div / a(contains(_href, 'https'), _class='c1')
+    assert xpath == './/div/a[contains(@href, "https") and @class="c1"]'
 
 
 def test_contains_2():
-    xpath = div / a(contains('@href', 'http'), _class='c1')
-    assert xpath == './/div/a[contains(@href, "http") and @class="c1"]'
+    xpath = div / a(contains('@href', 'https'), _class='c1')
+    assert xpath == './/div/a[contains(@href, "https") and @class="c1"]'
 
 
 def test_contains_3():
-    xpath = div / a(contains(text(), 'http'), _class='c1')
-    assert xpath == './/div/a[contains(text(), "http") and @class="c1"]'
+    xpath = div / a(contains(text(), 'https'), _class='c1')
+    assert xpath == './/div/a[contains(text(), "https") and @class="c1"]'
 
 
 def test_contains_4():
-    xpath = div / a(contains('text()', 'http'), _class='c1')
-    assert xpath == './/div/a[contains(text(), "http") and @class="c1"]'
-
-
-def test_parameters_text():
-    xpath = div / a(text='short', _class='c1')
-    assert xpath == './/div/a[text()="short" and @class="c1"]'
-
-
-def test_parameters_name():
-    xpath = div / a(name='short', _class='c1')
-    assert xpath == './/div/a[name()="short" and @class="c1"]'
+    xpath = div / a(contains('text()', 'https'), _class='c1')
+    assert xpath == './/div/a[contains(text(), "https") and @class="c1"]'
 
 
 def test_any():
@@ -106,6 +117,17 @@ def test_with_start_str():
     assert xpath == '//div/a/@href'
 
 
+def test_one_tag_execute():
+    xpath = div(_class='c1').execute()
+    assert xpath == 'div[@class="c1"]'
+
+
+def test_one_tag_execute_with_mode():
+    from xpathi.base import XPathMode
+    xpath = div(_class='c1').execute(mode=XPathMode.DOUBLE)
+    assert xpath == '//div[@class="c1"]'
+
+
 def test_same_tag_and_attribute():
     xpath = div(contains(name(), _name)) / a
     assert xpath == './/div[contains(name(), @name)]/a'
@@ -119,3 +141,18 @@ def test_long_1():
 def test_long_2():
     xpath = div / div(_class='wrapper')[last() - 1] // a(contains(_href, 'google'), text='click') / _href[0]
     assert xpath == './/div/div[@class="wrapper"][last()-1]//a[contains(@href, "google") and text()="click"]/@href[0]'
+
+
+def test_custom_1():
+    tag = Element('tag')
+    _attribute = Element('@attribute')
+    function = Element('function()')
+    xpath = tag / _attribute / function
+    assert xpath == './/tag/@attribute/function()'
+
+
+def test_custom_2():
+    tag = Element('tag')
+    _attribute = Element('@attribute')
+    xpath = tag(_attribute='val1', function='val2') // _attribute
+    assert xpath == './/tag[@attribute="val1" and function()="val2"]//@attribute'
