@@ -25,7 +25,7 @@ setup(
     version=get_version(),
     description='Library for generating XPath expressions as string using magic methods 🧙✨',
     long_description=get_long_description(),
-    long_description_content_type='text/markdown',
+    long_description_content_type='text/x-rst',
     author='Alex Ermolaev',
     author_email='abionics.dev@gmail.com',
     url='https://github.com/abionics/xpathi',
